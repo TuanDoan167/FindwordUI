@@ -1,36 +1,15 @@
 #include "mainwindow.hh"
 #include "ui_mainwindow.h"
-#include <QDebug>
+#include <iostream>
+#include <fstream>  // Notice the required library for file handling
+#include <string>
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-    ui->horizontalSliderRed->setMinimum(0);
-    ui->horizontalSliderRed->setMaximum(RGB_VALUE_MAX);
-
-    ui->horizontalSliderGreen->setMinimum(0);
-    ui->horizontalSliderGreen->setMaximum(RGB_VALUE_MAX);
-
-    ui->horizontalSliderBlue->setMinimum(0);
-    ui->horizontalSliderBlue->setMaximum(RGB_VALUE_MAX);
-
-    ui->spinBoxRed->setMinimum(0);
-    ui->spinBoxRed->setMaximum(RGB_VALUE_MAX);
-
-    ui->spinBoxGreen->setMinimum(0);
-    ui->spinBoxGreen->setMaximum(RGB_VALUE_MAX);
-
-    ui->spinBoxBlue->setMinimum(0);
-    ui->spinBoxBlue->setMaximum(RGB_VALUE_MAX);
-
-    connect(ui->horizontalSliderRed, &QSlider::valueChanged, this, &MainWindow::onColorChanged);
-    connect(ui->horizontalSliderGreen, &QSlider::valueChanged, this, &MainWindow::onColorChanged);
-    connect(ui->horizontalSliderBlue, &QSlider::valueChanged, this, &MainWindow::onColorChanged);
-
-    onColorChanged();
+    connect(ui->findPushButton, &QPushButton::clicked, this, &MainWindow::resultShown);
 }
 
 MainWindow::~MainWindow()
@@ -38,17 +17,71 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::onColorChanged()
-{
-    //qDebug() << "onColorChanged";
-    QColor selectedColor(ui->horizontalSliderRed->value(),
-                         ui->horizontalSliderGreen->value(),
-                         ui->horizontalSliderBlue->value());
 
-    QPixmap colorMap(64, 64);
-    colorMap.fill(selectedColor);
-    ui->colorLabel->setPixmap(colorMap);
+void MainWindow::on_fileLineEdit_editingFinished()
+{
+    QString filename(ui->fileLineEdit->text());
+    filename_=filename.toStdString();
 }
 
 
+void MainWindow::on_keyLineEdit_editingFinished()
+{
+    QString searchkey(ui->keyLineEdit->text());
+    searchkey_=searchkey.toStdString();
+}
+
+void MainWindow::resultShown()
+{
+    std::ifstream file_object(filename_);
+    if ( not file_object ) {
+        QString str = "File not found";
+        ui->textBrowser->setText(str);
+    }
+
+    else {
+        if(searchkey_.size()==0){
+            QString str = "File found";
+            ui->textBrowser->setText(str);
+        }
+        else {
+            std::string word;
+            while ( file_object>>word) {
+
+                if (not ui->matchCheckBox->isChecked()){
+                    unsigned int sz = searchkey_.size();
+                    unsigned int szword = word.size();
+                    if (sz != szword) {
+                        continue;}
+                    else
+                    {
+                        std::string newkey="";
+                        std::string newword="";
+                        for (unsigned int i = 0; i < sz; ++i){
+                            newkey+=tolower(searchkey_[i]);
+                            newword+=tolower(word[i]);
+                        }
+                            if (newkey == newword)
+                              { QString str = "Word found";
+                                ui->textBrowser->setText(str);
+                                break;}
+                    }
+                }
+
+                else if (searchkey_ == word){
+                    QString str = "Word found";
+                    ui->textBrowser->setText(str);
+                    break;
+                }
+            }
+
+            if(file_object.eof()){
+                QString str ="Word not found";
+                ui->textBrowser->setText(str);
+            }
+
+        }
+        file_object.close();
+    }
+}
 

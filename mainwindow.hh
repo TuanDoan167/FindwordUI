@@ -2,26 +2,32 @@
 #define MAINWINDOW_HH
 
 #include <QMainWindow>
+#include <iostream>
+#include <fstream>  // Notice the required library for file handling
+#include <string>
 
-namespace Ui {
-class MainWindow;
-}
+QT_BEGIN_NAMESPACE
+namespace Ui { class MainWindow; }
+QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 private slots:
-    void onColorChanged();
+    void on_fileLineEdit_editingFinished();
+
+    void on_keyLineEdit_editingFinished();
+
+    void resultShown();
 
 private:
     Ui::MainWindow *ui;
-
-    const int RGB_VALUE_MAX = 255;
+    std::string filename_;
+    std::string searchkey_;
 };
-
 #endif // MAINWINDOW_HH
