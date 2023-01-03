@@ -1,2 +1,2 @@
 # some-GUIs-projects
-3 simple GUI projects
+A simple GUI program to find a word from an input file
